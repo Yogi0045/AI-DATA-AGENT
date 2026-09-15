@@ -1,0 +1,60 @@
+Database Schema : public 
+
+Table: users
+
+Table: vehicles
+
+Table: rides
+
+Table: payments
+
+Table: ratings
+  Column: rating_id, Data Type: integer
+  Sample Data:
+    (1, 13870, 5833, 7667, 5, 'Could have been better', datetime.datetime(2025, 9, 9, 13, 41, 28))
+    (2, 2279, 1026, 3147, 4, 'Could have been better', datetime.datetime(2026, 6, 2, 23, 39, 31))
+    (3, 19701, 960, 2267, 5, 'Great ride', datetime.datetime(2026, 7, 23, 6, 31, 59))
+    (4, 860, 2999, 4679, 3, 'Average experience', datetime.datetime(2026, 4, 23, 4, 57, 28))
+    (5, 7868, 4277, 8698, 5, 'Average experience', datetime.datetime(2025, 10, 9, 6, 15, 35))
+  Column: ride_id, Data Type: integer
+  Sample Data:
+    (1, 13870, 5833, 7667, 5, 'Could have been better', datetime.datetime(2025, 9, 9, 13, 41, 28))
+    (2, 2279, 1026, 3147, 4, 'Could have been better', datetime.datetime(2026, 6, 2, 23, 39, 31))
+    (3, 19701, 960, 2267, 5, 'Great ride', datetime.datetime(2026, 7, 23, 6, 31, 59))
+    (4, 860, 2999, 4679, 3, 'Average experience', datetime.datetime(2026, 4, 23, 4, 57, 28))
+    (5, 7868, 4277, 8698, 5, 'Average experience', datetime.datetime(2025, 10, 9, 6, 15, 35))
+  Column: rider_id, Data Type: integer
+  Sample Data:
+    (1, 13870, 5833, 7667, 5, 'Could have been better', datetime.datetime(2025, 9, 9, 13, 41, 28))
+    (2, 2279, 1026, 3147, 4, 'Could have been better', datetime.datetime(2026, 6, 2, 23, 39, 31))
+    (3, 19701, 960, 2267, 5, 'Great ride', datetime.datetime(2026, 7, 23, 6, 31, 59))
+    (4, 860, 2999, 4679, 3, 'Average experience', datetime.datetime(2026, 4, 23, 4, 57, 28))
+    (5, 7868, 4277, 8698, 5, 'Average experience', datetime.datetime(2025, 10, 9, 6, 15, 35))
+  Column: driver_id, Data Type: integer
+  Sample Data:
+    (1, 13870, 5833, 7667, 5, 'Could have been better', datetime.datetime(2025, 9, 9, 13, 41, 28))
+    (2, 2279, 1026, 3147, 4, 'Could have been better', datetime.datetime(2026, 6, 2, 23, 39, 31))
+    (3, 19701, 960, 2267, 5, 'Great ride', datetime.datetime(2026, 7, 23, 6, 31, 59))
+    (4, 860, 2999, 4679, 3, 'Average experience', datetime.datetime(2026, 4, 23, 4, 57, 28))
+    (5, 7868, 4277, 8698, 5, 'Average experience', datetime.datetime(2025, 10, 9, 6, 15, 35))
+  Column: rating, Data Type: integer
+  Sample Data:
+    (1, 13870, 5833, 7667, 5, 'Could have been better', datetime.datetime(2025, 9, 9, 13, 41, 28))
+    (2, 2279, 1026, 3147, 4, 'Could have been better', datetime.datetime(2026, 6, 2, 23, 39, 31))
+    (3, 19701, 960, 2267, 5, 'Great ride', datetime.datetime(2026, 7, 23, 6, 31, 59))
+    (4, 860, 2999, 4679, 3, 'Average experience', datetime.datetime(2026, 4, 23, 4, 57, 28))
+    (5, 7868, 4277, 8698, 5, 'Average experience', datetime.datetime(2025, 10, 9, 6, 15, 35))
+  Column: comment, Data Type: text
+  Sample Data:
+    (1, 13870, 5833, 7667, 5, 'Could have been better', datetime.datetime(2025, 9, 9, 13, 41, 28))
+    (2, 2279, 1026, 3147, 4, 'Could have been better', datetime.datetime(2026, 6, 2, 23, 39, 31))
+    (3, 19701, 960, 2267, 5, 'Great ride', datetime.datetime(2026, 7, 23, 6, 31, 59))
+    (4, 860, 2999, 4679, 3, 'Average experience', datetime.datetime(2026, 4, 23, 4, 57, 28))
+    (5, 7868, 4277, 8698, 5, 'Average experience', datetime.datetime(2025, 10, 9, 6, 15, 35))
+  Column: rated_at, Data Type: timestamp without time zone
+  Sample Data:
+    (1, 13870, 5833, 7667, 5, 'Could have been better', datetime.datetime(2025, 9, 9, 13, 41, 28))
+    (2, 2279, 1026, 3147, 4, 'Could have been better', datetime.datetime(2026, 6, 2, 23, 39, 31))
+    (3, 19701, 960, 2267, 5, 'Great ride', datetime.datetime(2026, 7, 23, 6, 31, 59))
+    (4, 860, 2999, 4679, 3, 'Average experience', datetime.datetime(2026, 4, 23, 4, 57, 28))
+    (5, 7868, 4277, 8698, 5, 'Average experience', datetime.datetime(2025, 10, 9, 6, 15, 35))

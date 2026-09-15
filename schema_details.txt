@@ -1,0 +1,18 @@
+Database Schema : public 
+
+Table: users
+
+Table: vehicles
+
+Table: rides
+
+Table: payments
+
+Table: ratings
+  Column: rating_id, Data Type: integer
+  Column: ride_id, Data Type: integer
+  Column: rider_id, Data Type: integer
+  Column: driver_id, Data Type: integer
+  Column: rating, Data Type: integer
+  Column: comment, Data Type: text
+  Column: rated_at, Data Type: timestamp without time zone
