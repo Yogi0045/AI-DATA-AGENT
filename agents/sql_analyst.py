@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -67,13 +68,23 @@ def prompt_query_context(state: AgentSchema) -> AgentSchema:
 
 
 # Generate SQL Query Node
+def normalize_sql_query(query: str) -> str:
+    query = query.strip()
+    fenced_query = re.fullmatch(
+        r"```(?:sql)?\s*(.*?)\s*```", query, flags=re.IGNORECASE | re.DOTALL
+    )
+    if fenced_query:
+        return fenced_query.group(1).strip()
+    return query.strip("`").strip()
+
+
 def generate_sql(state: AgentSchema) -> AgentSchema:
 
     prompt = state.prompt_query_context
 
     llm = pick_llm("medium")  # Pick the appropriate LLM based on the level of the question
 
-    generated_sql_query = llm.invoke(prompt).content  # Generate the SQL query using the LLM
+    generated_sql_query = normalize_sql_query(llm.invoke(prompt).content)
 
     state.generated_sql_query = generated_sql_query
 
@@ -84,6 +95,10 @@ def generate_sql(state: AgentSchema) -> AgentSchema:
 def is_safe_sql(state: AgentSchema) -> AgentSchema:
 
     sql_query = state.generated_sql_query
+    if not re.match(r"^(SELECT|WITH)\b", sql_query, flags=re.IGNORECASE):
+        state.is_safe = "No"
+        state.comments = "The generated response was not a read-only SQL query."
+        return state
 
     llm = pick_llm("medium")
 
@@ -138,7 +153,10 @@ def canceled_sql(state: AgentSchema) -> AgentSchema:
 
     comments = state.comments
 
-    state.final_answer = f"The generated SQL query was deemed unsafe to execute. The reason provided by the judge is: {comments}. Therefore, the SQL query will not be executed."
+    if comments == "The generated response was not a read-only SQL query.":
+        state.final_answer = "I couldn't turn that request into a database query. Please be more specific about the information you'd like to see."
+    else:
+        state.final_answer = f"The generated SQL query was deemed unsafe to execute. The reason provided by the judge is: {comments}. Therefore, the SQL query will not be executed."
     state.messages = state.messages + [AIMessage(content=f"{state.final_answer}")]  # Append the final answer to the messages list  
 
     return state
@@ -171,6 +189,11 @@ def represent_final_answer(state: AgentSchema) -> AgentSchema:
 
     execution_result = state.sql_query_execution_result
     curated_question = state.curated_ques
+
+    if isinstance(execution_result, str) and execution_result.startswith("Error executing query:"):
+        state.final_answer = "I couldn't run that database query. Please try rephrasing your question."
+        state.messages = state.messages + [AIMessage(content=state.final_answer)]
+        return state
 
     llm = pick_llm("low")
 

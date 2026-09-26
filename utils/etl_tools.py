@@ -24,27 +24,44 @@ class ETLTools:
         project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
         output_folder = os.path.join(project_root, output_folder)      
 
+        if format not in {"csv", "json", "parquet"}:
+            return f"Unsupported format: {format}"
+
         try:
-            response = requests.get(url)
+            response = requests.get(url, timeout=(5, 30), allow_redirects=False)
             response.raise_for_status()
-            data  = response.json()
+            data = response.json()
+
+            records = data
+            if isinstance(data, dict):
+                for key in ("results", "data", "items", "records"):
+                    if isinstance(data.get(key), (list, dict)):
+                        records = data[key]
+                        break
+            if isinstance(records, dict):
+                records = [records]
+            if not isinstance(records, list):
+                return "Unsupported API response: expected a JSON object or array."
 
             filename = os.path.join(output_folder, f"extracted_data.{format}")
             os.makedirs(output_folder, exist_ok=True)
 
-            df = pd.json_normalize(data['results'])
+            if records and all(not isinstance(record, (dict, list)) for record in records):
+                df = pd.DataFrame({"value": records})
+            else:
+                df = pd.json_normalize(records)
             if format == "csv":
                 df.to_csv(filename, index=False)
             elif format == "json":
                 df.to_json(filename, orient="records", lines=True)
             elif format == "parquet":
                 df.to_parquet(filename, index=False)
-            else:
-                return f"Unsupported format: {format}"
 
             return f"Data successfully extracted and saved to {filename}"
         except requests.exceptions.RequestException as e:
             return f"Failed to extract data: {e}"
+        except (ValueError, OSError) as e:
+            return f"Failed to process API data: {e}"
 
 
     def transform_load_context(self, file_path:str):

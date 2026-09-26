@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#111111">
+    <title>Data Agent</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar" aria-label="Workspace">
+            <a class="brand" href="/" aria-label="Data Agent home">
+                <span class="brand-mark">DA</span>
+                <span>Data Agent</span>
+            </a>
+            <button id="new-chat-button" class="new-chat-button" type="button">
+                <span class="new-chat-plus" aria-hidden="true">+</span>
+                <span>New chat</span>
+            </button>
+            <div class="sidebar-section">
+                <p class="sidebar-label">WORKSPACE</p>
+                <div class="workspace-item">
+                    <span class="workspace-icon" aria-hidden="true">D</span>
+                    <span>Database Q&amp;A</span>
+                </div>
+            </div>
+            <div class="sidebar-footer">
+                <span class="footer-avatar" aria-hidden="true">DA</span>
+                <span class="footer-copy"><strong>Data Agent</strong><small>SQL analyst</small></span>
+                <span class="footer-menu" aria-hidden="true">•••</span>
+            </div>
+        </aside>
+
+        <div class="main-shell">
+            <header class="topbar">
+                <div class="topbar-title">Data Agent</div>
+                <div class="mode-tabs" role="tablist" aria-label="Data source">
+                    <button id="database-tab" class="mode-tab active" type="button" role="tab" aria-selected="true">Database</button>
+                    <button id="etl-tab" class="mode-tab" type="button" role="tab" aria-selected="false">API &amp; CSV</button>
+                </div>
+            </header>
+
+            <main id="chat-workspace" class="workspace">
+                <section class="conversation" aria-label="Chat conversation">
+                    <div id="intro" class="intro">
+                        <div class="intro-mark" aria-hidden="true">DA</div>
+                        <p class="eyebrow">DATA AGENT</p>
+                        <h1>What would you like to explore?</h1>
+                    </div>
+
+                    <div id="suggestions" class="suggestions" aria-label="Suggested questions">
+                        <button class="suggestion" type="button" data-prompt="Show me the payment methods in the database">
+                            <span class="suggestion-title">Payment methods</span>
+                            <span class="suggestion-detail">See each available method</span>
+                            <span class="suggestion-arrow" aria-hidden="true">&#8599;</span>
+                        </button>
+                        <button class="suggestion" type="button" data-prompt="How many rides are in the database?">
+                            <span class="suggestion-title">Ride activity</span>
+                            <span class="suggestion-detail">Get the total ride count</span>
+                            <span class="suggestion-arrow" aria-hidden="true">&#8599;</span>
+                        </button>
+                        <button class="suggestion" type="button" data-prompt="Show me the latest ratings">
+                            <span class="suggestion-title">Latest ratings</span>
+                            <span class="suggestion-detail">Review recent feedback</span>
+                            <span class="suggestion-arrow" aria-hidden="true">&#8599;</span>
+                        </button>
+                    </div>
+
+                    <div id="messages" class="messages" aria-live="polite" aria-relevant="additions"></div>
+                </section>
+
+                <div class="composer-zone">
+                    <form id="chat-form" class="composer">
+                        <label class="visually-hidden" for="message-input">Your question</label>
+                        <textarea id="message-input" name="message" rows="1" maxlength="2000"
+                            placeholder="Message Data Agent" required></textarea>
+                        <button id="send-button" class="send-button" type="submit" aria-label="Send message">
+                            <span>Send</span><span aria-hidden="true">&#8593;</span>
+                        </button>
+                        <p id="form-status" class="form-status" role="status"></p>
+                    </form>
+                    <p class="composer-note">Answers are based on the data currently available.</p>
+                </div>
+            </main>
+
+            <main id="etl-workspace" class="etl-workspace" hidden>
+                <section class="etl-intro">
+                    <p class="eyebrow">DATA INGESTION</p>
+                    <h1>Bring data into view</h1>
+                    <p>Fetch a public JSON API or inspect a CSV from your device.</p>
+                </section>
+
+                <div class="etl-grid">
+                    <section class="etl-card">
+                        <div class="etl-card-heading">
+                            <span class="etl-card-icon" aria-hidden="true">&#8599;</span>
+                            <div>
+                                <h2>Fetch from an API</h2>
+                                <p>Extract public JSON records to a new CSV.</p>
+                            </div>
+                        </div>
+                        <form id="extract-form" class="etl-form">
+                            <label for="api-url">Public API URL</label>
+                            <div class="url-entry">
+                                <input id="api-url" name="url" type="url" placeholder="https://api.example.com/data" required>
+                                <button id="extract-button" type="submit">Fetch data <span aria-hidden="true">&#8594;</span></button>
+                            </div>
+                            <p class="field-help">Public HTTP or HTTPS JSON endpoints. Extracted records are saved as CSV.</p>
+                            <p id="extract-status" class="etl-status" role="status"></p>
+                        </form>
+                    </section>
+
+                    <section class="etl-card">
+                        <div class="etl-card-heading">
+                            <span class="etl-card-icon upload-icon" aria-hidden="true">&#8595;</span>
+                            <div>
+                                <h2>Inspect a CSV</h2>
+                                <p>Get a quick profile and preview of your file.</p>
+                            </div>
+                        </div>
+                        <label class="upload-control" for="csv-file">
+                            <span class="upload-symbol" aria-hidden="true">+</span>
+                            <span><strong>Choose a CSV file</strong><small>Up to 10 MB</small></span>
+                            <input id="csv-file" type="file" accept=".csv,text/csv">
+                        </label>
+                        <p id="upload-status" class="etl-status" role="status"></p>
+                    </section>
+                </div>
+
+                <section id="profile-panel" class="profile-panel" aria-live="polite" hidden></section>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById("chat-form");
+        const input = document.getElementById("message-input");
+        const sendButton = document.getElementById("send-button");
+        const newChatButton = document.getElementById("new-chat-button");
+        const messages = document.getElementById("messages");
+        const formStatus = document.getElementById("form-status");
+        const intro = document.getElementById("intro");
+        const suggestions = document.getElementById("suggestions");
+        const conversationHistory = [];
+        const databaseTab = document.getElementById("database-tab");
+        const etlTab = document.getElementById("etl-tab");
+        const chatWorkspace = document.getElementById("chat-workspace");
+        const etlWorkspace = document.getElementById("etl-workspace");
+        const extractForm = document.getElementById("extract-form");
+        const apiUrl = document.getElementById("api-url");
+        const extractButton = document.getElementById("extract-button");
+        const extractStatus = document.getElementById("extract-status");
+        const csvFile = document.getElementById("csv-file");
+        const uploadStatus = document.getElementById("upload-status");
+        const profilePanel = document.getElementById("profile-panel");
+
+        function setMode(mode) {
+            const isDatabase = mode === "database";
+            chatWorkspace.hidden = !isDatabase;
+            etlWorkspace.hidden = isDatabase;
+            databaseTab.classList.toggle("active", isDatabase);
+            etlTab.classList.toggle("active", !isDatabase);
+            databaseTab.setAttribute("aria-selected", String(isDatabase));
+            etlTab.setAttribute("aria-selected", String(!isDatabase));
+        }
+
+        databaseTab.addEventListener("click", () => setMode("database"));
+        etlTab.addEventListener("click", () => setMode("etl"));
+
+        function appendText(tagName, className, text) {
+            const element = document.createElement(tagName);
+            element.className = className;
+            element.textContent = text;
+            return element;
+        }
+
+        function renderProfile(profile) {
+            profilePanel.replaceChildren();
+            const heading = document.createElement("div");
+            heading.className = "profile-heading";
+            const title = document.createElement("h2");
+            title.textContent = profile.filename;
+            const filePath = document.createElement("p");
+            filePath.textContent = profile.saved_to;
+            heading.append(title, filePath);
+
+            const summary = document.createElement("div");
+            summary.className = "profile-summary";
+            summary.append(
+                appendText("span", "summary-stat", `${profile.rows.toLocaleString()} rows`),
+                appendText("span", "summary-stat", `${profile.column_count} columns`)
+            );
+
+            const columns = document.createElement("div");
+            columns.className = "column-list";
+            for (const column of profile.columns) {
+                const item = document.createElement("div");
+                item.className = "column-item";
+                item.append(
+                    appendText("strong", "", column.name),
+                    appendText("span", "column-type", column.type),
+                    appendText("span", "column-missing", `${column.missing} missing`)
+                );
+                columns.appendChild(item);
+            }
+
+            const previewTitle = appendText("h3", "preview-title", "Preview");
+            const tableWrap = document.createElement("div");
+            tableWrap.className = "table-wrap";
+            const table = document.createElement("table");
+            const header = document.createElement("tr");
+            for (const column of profile.columns) {
+                header.appendChild(appendText("th", "", column.name));
+            }
+            const thead = document.createElement("thead");
+            thead.appendChild(header);
+            table.appendChild(thead);
+            const tbody = document.createElement("tbody");
+            for (const record of profile.preview) {
+                const row = document.createElement("tr");
+                for (const column of profile.columns) {
+                    row.appendChild(appendText("td", "", record[column.name] ?? ""));
+                }
+                tbody.appendChild(row);
+            }
+            table.appendChild(tbody);
+            tableWrap.appendChild(table);
+            profilePanel.append(heading, summary, columns, previewTitle, tableWrap);
+            profilePanel.hidden = false;
+        }
+
+        async function submitEtlRequest(url, options, statusElement) {
+            statusElement.className = "etl-status";
+            statusElement.textContent = "Working...";
+            profilePanel.hidden = true;
+            try {
+                const response = await fetch(url, options);
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.detail || "The request could not be completed.");
+                renderProfile(result);
+                statusElement.className = "etl-status success";
+                statusElement.textContent = `Loaded ${result.rows.toLocaleString()} rows.`;
+            } catch (error) {
+                statusElement.className = "etl-status error";
+                statusElement.textContent = error.message || "Unable to process this data.";
+            }
+        }
+
+        extractForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            if (extractButton.disabled) return;
+            extractButton.disabled = true;
+            extractButton.firstChild.textContent = "Fetching... ";
+            await submitEtlRequest("/api/etl/extract", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ url: apiUrl.value.trim() })
+            }, extractStatus);
+            extractButton.disabled = false;
+            extractButton.firstChild.textContent = "Fetch data ";
+        });
+
+        csvFile.addEventListener("change", async () => {
+            const file = csvFile.files[0];
+            if (!file) return;
+            uploadStatus.textContent = `Reading ${file.name}...`;
+            const formData = new FormData();
+            formData.append("file", file);
+            await submitEtlRequest("/api/etl/upload", { method: "POST", body: formData }, uploadStatus);
+            csvFile.value = "";
+        });
+
+        function addMessage(content, role, extraClass = "") {
+            const message = document.createElement("article");
+            message.className = `message ${role}-message ${extraClass}`.trim();
+            const text = document.createElement("p");
+            text.textContent = content;
+            message.appendChild(text);
+            messages.appendChild(message);
+            message.scrollIntoView({ block: "nearest" });
+            return message;
+        }
+
+        newChatButton.addEventListener("click", () => {
+            conversationHistory.length = 0;
+            messages.replaceChildren();
+            intro.hidden = false;
+            suggestions.hidden = false;
+            input.value = "";
+            input.style.height = "";
+            formStatus.textContent = "";
+            input.focus();
+        });
+
+        suggestions.addEventListener("click", (event) => {
+            const suggestion = event.target.closest("[data-prompt]");
+            if (!suggestion) return;
+            input.value = suggestion.dataset.prompt;
+            form.requestSubmit();
+        });
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const message = input.value.trim();
+            if (!message || sendButton.disabled) return;
+
+            const history = conversationHistory.slice(-6);
+            intro.hidden = true;
+            suggestions.hidden = true;
+            addMessage(message, "user");
+            input.value = "";
+            input.style.height = "";
+            sendButton.disabled = true;
+            input.disabled = true;
+            newChatButton.disabled = true;
+            formStatus.textContent = "Thinking...";
+            const pending = addMessage("Working on your answer...", "assistant", "pending");
+
+            try {
+                const response = await fetch("/api/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message, history })
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.detail || "Something went wrong.");
+                pending.querySelector("p").textContent = result.answer;
+                pending.classList.remove("pending");
+                conversationHistory.push(
+                    { role: "user", content: message },
+                    { role: "assistant", content: result.answer }
+                );
+            } catch (error) {
+                pending.querySelector("p").textContent = error.message || "Unable to reach the data agent. Please try again.";
+                pending.classList.remove("pending");
+                pending.classList.add("error-message");
+            } finally {
+                sendButton.disabled = false;
+                input.disabled = false;
+                newChatButton.disabled = false;
+                input.focus();
+                formStatus.textContent = "";
+            }
+        });
+
+        input.addEventListener("input", () => {
+            input.style.height = "auto";
+            input.style.height = `${Math.min(input.scrollHeight, 160)}px`;
+        });
+
+        input.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                form.requestSubmit();
+            }
+        });
+    </script>
+</body>
+</html>
